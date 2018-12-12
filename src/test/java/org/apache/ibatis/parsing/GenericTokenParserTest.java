@@ -47,7 +47,6 @@ public class GenericTokenParserTest {
         put("last_name", "Kirk");
         put("var{with}brace", "Hiya");
         put("", "");
-        put("A","A");
       }
     }));
 

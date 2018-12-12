@@ -15,16 +15,13 @@
  */
 package org.apache.ibatis.parsing;
 
+import org.w3c.dom.CharacterData;
+import org.w3c.dom.*;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-
-import org.w3c.dom.CharacterData;
-import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 /**
  * @author Clinton Begin
@@ -51,6 +48,11 @@ public class XNode {
     return new XNode(xpathParser, node, variables);
   }
 
+
+  /**
+   * 得到父节点
+   * @return
+   */
   public XNode getParent() {
     Node parent = node.getParentNode();
     if (parent == null || !(parent instanceof Element)) {
@@ -60,11 +62,16 @@ public class XNode {
     }
   }
 
+  /**
+   * 得到当前节点在xml中的全路径  /a/b/c  应该用做XPathParser中expression的值？？？
+   * @return
+   */
   public String getPath() {
     StringBuilder builder = new StringBuilder();
     Node current = node;
     while (current != null && current instanceof Element) {
       if (current != node) {
+        //insert 方法 在指定位置插入相应的字符串，指定位置之后的字符串往后顺移
         builder.insert(0, "/");
       }
       builder.insert(0, current.getNodeName());
@@ -73,6 +80,13 @@ public class XNode {
     return builder.toString();
   }
 
+  /**
+   * 暂时不知道作用
+   * <parent id="parentId">
+   *    <son id="son.Id" value="sonValue" property="sonPro"></son>
+   *<parent/>
+   * @return  parent[parentId]_son[son_Id]
+   */
   public String getValueBasedIdentifier() {
     StringBuilder builder = new StringBuilder();
     XNode current = this;
@@ -287,6 +301,7 @@ public class XNode {
     }
   }
 
+  /*获取所有的子节点并转化XNode*/
   public List<XNode> getChildren() {
     List<XNode> children = new ArrayList<XNode>();
     NodeList nodeList = node.getChildNodes();
@@ -301,6 +316,7 @@ public class XNode {
     return children;
   }
 
+  /*获取所有子节点的name和value放在Properties对象中*/
   public Properties getChildrenAsProperties() {
     Properties properties = new Properties();
     for (XNode child : getChildren()) {
@@ -347,6 +363,7 @@ public class XNode {
     return builder.toString();
   }
 
+  /*解析当前节点的属性*/
   private Properties parseAttributes(Node n) {
     Properties attributes = new Properties();
     NamedNodeMap attributeNodes = n.getAttributes();
@@ -360,6 +377,7 @@ public class XNode {
     return attributes;
   }
 
+  /*把节点转化成标签  例如 id='${id_var}' 转化成 <id>${id_var}</id> */
   private String parseBody(Node node) {
     String data = getBodyData(node);
     if (data == null) {
@@ -375,10 +393,14 @@ public class XNode {
     return data;
   }
 
+  /*获取节点的值并解析占位符*/
   private String getBodyData(Node child) {
+    //CDATA_SECTION_NODE 代表文档中的 CDATA 部（不会由解析器解析的文本）
+    //TEXT_NODE 代表元素或属性中的文本内容。
     if (child.getNodeType() == Node.CDATA_SECTION_NODE
         || child.getNodeType() == Node.TEXT_NODE) {
       String data = ((CharacterData) child).getData();
+      System.out.println(data);
       data = PropertyParser.parse(data, variables);
       return data;
     }
