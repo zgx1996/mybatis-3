@@ -30,12 +30,15 @@ public class GenericTokenParser {
     this.handler = handler;
   }
 
+  /*解析占位符*/
   public String parse(String text) {
     if (text == null || text.isEmpty()) {
       return "";
     }
     // search open token
+    /*text中openToken的起始位置*/
     int start = text.indexOf(openToken, 0);
+    /*如果不存在openToken，则return text*/
     if (start == -1) {
       return text;
     }
@@ -43,9 +46,11 @@ public class GenericTokenParser {
     int offset = 0;
     final StringBuilder builder = new StringBuilder();
     StringBuilder expression = null;
+    /*存在openToken*/
     while (start > -1) {
       if (start > 0 && src[start - 1] == '\\') {
         // this open token is escaped. remove the backslash and continue.
+        /*当start位置的前一个字符是转义字符时*/
         builder.append(src, offset, start - offset - 1).append(openToken);
         offset = start + openToken.length();
       } else {
@@ -61,6 +66,7 @@ public class GenericTokenParser {
         while (end > -1) {
           if (end > offset && src[end - 1] == '\\') {
             // this close token is escaped. remove the backslash and continue.
+            /*当end位置的前一个字符是转义字符时*/
             expression.append(src, offset, end - offset - 1).append(closeToken);
             offset = end + closeToken.length();
             end = text.indexOf(closeToken, offset);
